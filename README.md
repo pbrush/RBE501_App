@@ -1,0 +1,1 @@
+A mini project for WPI's RBE501 with Loris Fichera create a robot dynamics simulator in MATLAB. We must create a GUI that displays a kinematic chain of ___ robot, plots the state of the robot in real time, and has controls to interact with the robot.
