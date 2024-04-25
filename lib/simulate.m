@@ -54,9 +54,7 @@ function [tau_prescribed, jointPos_actual, jointVel_actual, jointAcc, t] = simul
         params_rne.jointAcc = jointAcc_prescribed(:,ii);
 
         T = fkine(S,M, jointPos_prescribed(:, ii), 'space');
-        Mtip = (skew(T(1:3, 4)) * Ftip(4:6)')' + Ftip(1:3);
-        Ftip
-        Mtip
+        Mtip = (-skew(T(1:3, 4)) * Ftip(4:6)')' + Ftip(1:3);
         ftip = [Ftip(4:6) Mtip];
         Wtip = (adjoint(T)'*ftip')';
         params_rne.Ftip = Wtip; % end effector wrench
@@ -70,7 +68,7 @@ function [tau_prescribed, jointPos_actual, jointVel_actual, jointAcc, t] = simul
         params_fdyn.tau = tau_prescribed(:,ii);
 
         T = fkine(S,M, jointPos_actual(:, ii), 'space');
-        Mtip = (skew(T(1:3, 4)) * Ftip(4:6)')' + Ftip(1:3);
+        Mtip = (-skew(T(1:3, 4)) * Ftip(4:6)')' + Ftip(1:3);
         ftip = [Ftip(4:6) Mtip];
         Wtip = (adjoint(T)'*ftip')';
         params_fdyn.Ftip = Wtip; % end effector wrench

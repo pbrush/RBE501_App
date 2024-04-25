@@ -1,0 +1,462 @@
+function varargout = robotarm(varargin)
+%ROBOTARM MATLAB code file for robotarm.fig
+%      ROBOTARM, by itself, creates a new ROBOTARM or raises the existing
+%      singleton*.
+%
+%      H = ROBOTARM returns the handle to a new ROBOTARM or the handle to
+%      the existing singleton*.
+%
+%      ROBOTARM('Property','Value',...) creates a new ROBOTARM using the
+%      given property value pairs. Unrecognized properties are passed via
+%      varargin to robotarm_OpeningFcn.  This calling syntax produces a
+%      warning when there is an existing singleton*.
+%
+%      ROBOTARM('CALLBACK') and ROBOTARM('CALLBACK',hObject,...) call the
+%      local function named CALLBACK in ROBOTARM.M with the given input
+%      arguments.
+%
+%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
+%      instance to run (singleton)".
+%
+% See also: GUIDE, GUIDATA, GUIHANDLES
+
+% Edit the above text to modify the response to help robotarm
+
+% Last Modified by GUIDE v2.5 25-Apr-2024 12:12:46
+
+% Begin initialization code - DO NOT EDIT
+gui_Singleton = 1;
+gui_State = struct('gui_Name',       mfilename, ...
+                   'gui_Singleton',  gui_Singleton, ...
+                   'gui_OpeningFcn', @robotarm_OpeningFcn, ...
+                   'gui_OutputFcn',  @robotarm_OutputFcn, ...
+                   'gui_LayoutFcn',  [], ...
+                   'gui_Callback',   []);
+if nargin && ischar(varargin{1})
+   gui_State.gui_Callback = str2func(varargin{1});
+end
+
+if nargout
+    [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+else
+    gui_mainfcn(gui_State, varargin{:});
+end
+% End initialization code - DO NOT EDIT
+
+
+% --- Executes just before robotarm is made visible.
+function robotarm_OpeningFcn(hObject, eventdata, handles, varargin)
+% This function has no output args, see OutputFcn.
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% varargin   unrecognized PropertyName/PropertyValue pairs from the
+%            command line (see VARARGIN)
+
+% Choose default command line output for robotarm
+handles.output = hObject;
+
+addpath('./lib');
+
+handles.S = [0 0 1 0 0 0;
+     0 -1 0 -cross([0 -1 0], [0 0 0.089459]);
+     0 -1 0 -cross([0 -1 0], [-0.425 0 0.089459]);
+     0 -1 0 -cross([0 -1 0], [-0.8173 0 0.089459]);
+     0 0 -1 -cross([0 0 -1], [-0.8173 -0.10915 0]);
+     0 -1 0 -cross([0 -1 0], [-0.8173 0 -0.0052])]';
+
+% Home configuration
+handles.M = [1	0	0	-0.817;
+    0	0	-1	-0.19;
+    0	1	0	-0.005;
+    0	0	0	1];
+handles.n = 6;
+
+handles.g = [0 0 -9.81];
+
+
+handles.currentQ = [0 0 0 0 0 0];
+handles.currentPose = MatrixLog6(fkine(handles.S, handles.M, handles.currentQ, 'space'));
+handles.currentPose = [handles.currentPose(3,2) handles.currentPose(1,3) handles.currentPose(2,1) handles.currentPose(1:3,4)']';
+
+mdl_ur5;
+robot = ur5;
+robot.plot(zeros(1,6))
+handles.robot = robot;
+
+[handles.Mlist, handles.Glist] = make_dynamics_model(robot);
+
+handles.x = 0;
+handles.y = 0;
+handles.z = 0;
+handles.roll = 0;
+handles.pitch = 0;
+handles.yaw = 0;
+
+handles.fx = 0;
+handles.fy = 0;
+handles.fz = 0;
+handles.froll = 0;
+handles.fpitch = 0;
+handles.fyaw = 0;
+
+% Update handles structure
+guidata(hObject, handles);
+guidata(hObject)
+
+% UIWAIT makes robotarm wait for user response (see UIRESUME)
+% uiwait(handles.figure1);
+
+
+% --- Outputs from this function are returned to the command line.
+function varargout = robotarm_OutputFcn(hObject, eventdata, handles)
+% varargout  cell array for returning output args (see VARARGOUT);
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Get default command line output from handles structure
+varargout{1} = handles.output;
+
+
+
+function x_Callback(hObject, eventdata, handles)
+% hObject    handle to x (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of x as text
+%        str2double(get(hObject,'String')) returns contents of x as a double
+handles.x = str2double(get(hObject,'String'));
+handles = valueChanged(hObject, eventdata, handles);
+guidata(hObject, handles);
+
+
+
+% --- Executes during object creation, after setting all properties.
+function x_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to x (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function y_Callback(hObject, eventdata, handles)
+% hObject    handle to y (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of y as text
+%        str2double(get(hObject,'String')) returns contents of y as a double
+handles.y = str2double(get(hObject,'String'));
+handles = valueChanged(hObject, eventdata, handles);
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function y_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to y (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function roll_Callback(hObject, eventdata, handles)
+% hObject    handle to roll (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of roll as text
+%        str2double(get(hObject,'String')) returns contents of roll as a double
+handles.roll = str2double(get(hObject,'String'));
+handles = valueChanged(hObject, eventdata, handles);
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function roll_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to roll (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function yaw_Callback(hObject, eventdata, handles)
+% hObject    handle to yaw (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of yaw as text
+%        str2double(get(hObject,'String')) returns contents of yaw as a double
+handles.yaw = str2double(get(hObject,'String'));
+handles = valueChanged(hObject, eventdata, handles);
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function yaw_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to yaw (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function pitch_Callback(hObject, eventdata, handles)
+% hObject    handle to pitch (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of pitch as text
+%        str2double(get(hObject,'String')) returns contents of pitch as a double
+handles.pitch = str2double(get(hObject,'String'));
+handles = valueChanged(hObject, eventdata, handles);
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function pitch_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to pitch (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function z_Callback(hObject, eventdata, handles)
+% hObject    handle to z (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of z as text
+%        str2double(get(hObject,'String')) returns contents of z as a double
+handles.z = str2double(get(hObject,'String'));
+handles = valueChanged(hObject, eventdata, handles);
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function z_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to z (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function Ftipx_Callback(hObject, eventdata, handles)
+% hObject    handle to Ftipx (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Ftipx as text
+%        str2double(get(hObject,'String')) returns contents of Ftipx as a double
+handles.fx = str2double(get(hObject,'String'));
+handles = valueChanged(hObject, eventdata, handles);
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function Ftipx_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Ftipx (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function Ftipy_Callback(hObject, eventdata, handles)
+% hObject    handle to Ftipy (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Ftipy as text
+%        str2double(get(hObject,'String')) returns contents of Ftipy as a double
+handles.fy = str2double(get(hObject,'String'));
+handles = valueChanged(hObject, eventdata, handles);
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function Ftipy_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Ftipy (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function Ftiproll_Callback(hObject, eventdata, handles)
+% hObject    handle to Ftiproll (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Ftiproll as text
+%        str2double(get(hObject,'String')) returns contents of Ftiproll as a double
+handles.froll = str2double(get(hObject,'String'));
+handles = valueChanged(hObject, eventdata, handles);
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function Ftiproll_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Ftiproll (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function Ftipyaw_Callback(hObject, eventdata, handles)
+% hObject    handle to Ftipyaw (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Ftipyaw as text
+%        str2double(get(hObject,'String')) returns contents of Ftipyaw as a double
+handles.fyaw = str2double(get(hObject,'String'));
+handles = valueChanged(hObject, eventdata, handles);
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function Ftipyaw_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Ftipyaw (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function Ftippitch_Callback(hObject, eventdata, handles)
+% hObject    handle to Ftippitch (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Ftippitch as text
+%        str2double(get(hObject,'String')) returns contents of Ftippitch as a double
+handles.fpitch = str2double(get(hObject,'String'));
+handles = valueChanged(hObject, eventdata, handles);
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function Ftippitch_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Ftippitch (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+function Ftipz_Callback(hObject, eventdata, handles)
+% hObject    handle to Ftipz (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Ftipz as text
+%        str2double(get(hObject,'String')) returns contents of Ftipz as a double
+handles.fz = str2double(get(hObject,'String'));
+handles = valueChanged(hObject, eventdata, handles);
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function Ftipz_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Ftipz (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+function handles = valueChanged(hObject, eventdata, handles)
+x = handles.x;
+y = handles.y;
+z = handles.z;
+roll = handles.roll;
+pitch = handles.pitch;
+yaw = handles.yaw;
+
+fx = handles.fx;
+fy = handles.fy;
+fz = handles.fz;
+froll = handles.froll;
+fpitch = handles.fpitch;
+fyaw = handles.fyaw;
+Ftip = [froll fpitch fyaw fx fy fz];
+
+psi = yaw; theta = pitch; phi = roll;
+p = [x; y; z];
+R = [cos(theta)*cos(psi) -cos(phi)*sin(psi)+sin(phi)*sin(theta)*cos(psi) sin(phi)*sin(psi)+cos(phi)*sin(theta)*cos(psi);
+     cos(theta)*sin(psi) cos(phi)*cos(psi)+sin(phi)*sin(theta)*sin(psi) -sin(phi)*cos(psi)+cos(phi)*sin(theta)*sin(psi);
+     -sin(theta)         sin(phi)*cos(theta)                            cos(phi)*cos(theta)];
+T = [R p; 0 0 0 1];
+targetPose = MatrixLog6(T);
+targetPose = [targetPose(3,2) targetPose(1,3) targetPose(2,1) targetPose(1:3,4)']';
+
+goalQ = ikin(handles.S, handles.M, handles.currentQ, targetPose);
+tMax = norm(targetPose - handles.currentPose);
+
+[tau, jointPos, jointVel, jointAcc, t] = simulate(handles.n, handles.currentQ, goalQ, handles.g, handles.S, handles.M, handles.Mlist, handles.Glist, tMax, Ftip);
+
+handles.robot.plot(jointPos(:,1:100:end)','trail',{'r', 'LineWidth', 2});
+handles.currentQ = jointPos(:, end)';
+handles.currentPose = MatrixLog6(fkine(handles.S, handles.M, handles.currentQ, 'space'));
+handles.currentPose = [handles.currentPose(3,2) handles.currentPose(1,3) handles.currentPose(2,1) handles.currentPose(1:3,4)']';
+
+plot(handles.torqueGraph, t, tau);
+plot(handles.positionGraph, t, jointPos);
+plot(handles.velocityGraph, t, jointVel);
+plot(handles.accelerationGraph, t, jointAcc);
+
+
+
