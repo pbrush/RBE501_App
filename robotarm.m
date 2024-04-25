@@ -79,8 +79,8 @@ handles.currentQ = [0 0 0 0 0 0];
 handles.currentPose = MatrixLog6(fkine(handles.S, handles.M, handles.currentQ, 'space'));
 handles.currentPose = [handles.currentPose(3,2) handles.currentPose(1,3) handles.currentPose(2,1) handles.currentPose(1:3,4)']';
 
-mdl_ur5;
-robot = ur5;
+mdl_irb140;
+robot = irb140;
 robot.plot(zeros(1,6))
 handles.robot = robot;
 
