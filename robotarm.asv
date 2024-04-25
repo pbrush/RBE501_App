@@ -459,28 +459,23 @@ axes(handles.torqueGraph)
 title("Torque vs time")
 legend("joint 1", "joint 2", "joint 3", "joint 4", "joint 5", "joint 6")
 xlabel("time (s)")
-ylabel("torque (N-m)")
+tlabel("torque (N-m)")
 
 plot(handles.positionGraph, t, jointPos);
 axes(handles.positionGraph)
 title("Position vs time")
 legend("joint 1", "joint 2", "joint 3", "joint 4", "joint 5", "joint 6")
 xlabel("time (s)")
-ylabel("Position (m)")
+tlabel("Position (m)")
 
 plot(handles.velocityGraph, t, jointVel);
 axes(handles.velocityGraph)
 title("Velocity vs time")
 legend("joint 1", "joint 2", "joint 3", "joint 4", "joint 5", "joint 6")
 xlabel("time (s)")
-ylabel("velocity (m/s)")
+tlabel("torque (N-m)")
 
 plot(handles.accelerationGraph, t, jointAcc);
-axes(handles.accelerationGraph)
-title("Acceleration vs time")
-legend("joint 1", "joint 2", "joint 3", "joint 4", "joint 5", "joint 6")
-xlabel("time (s)")
-ylabel("acceleration (m/s/s)")
 
 
 
