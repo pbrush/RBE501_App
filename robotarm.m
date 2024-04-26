@@ -59,29 +59,30 @@ handles.output = hObject;
 addpath('./lib');
 
 handles.S = [0 0 1 0 0 0;
-     0 -1 0 -cross([0 -1 0], [0 0 0.089459]);
-     0 -1 0 -cross([0 -1 0], [-0.425 0 0.089459]);
-     0 -1 0 -cross([0 -1 0], [-0.8173 0 0.089459]);
-     0 0 -1 -cross([0 0 -1], [-0.8173 -0.10915 0]);
-     0 -1 0 -cross([0 -1 0], [-0.8173 0 -0.0052])]';
+             0 1 0 -0.333 0 0;
+             0 0 1 0 0 0;
+             0 -1 0 0.649 0 -0.0825;
+             0 0 1 0 0 0;
+             0 -1 0 1.033 0 0;
+             0 0 -1 0 0.088 0]';
 
 % Home configuration
-handles.M = [1	0	0	-0.817;
-    0	0	-1	-0.19;
-    0	1	0	-0.005;
-    0	0	0	1];
-handles.n = 6;
+handles.M = [1	0	0	0.088;
+             0	-1	0	0;
+             0	0	-1	0.816;
+             0	0	0	1];
+handles.n = 7;
 
 handles.g = [0 0 -9.81];
 
 
-handles.currentQ = [0 0 0 0 0 0];
+handles.currentQ = [0.4297    2.28    0.   -1.844   3.15   -0.986   -0.4297];
 handles.currentPose = MatrixLog6(fkine(handles.S, handles.M, handles.currentQ, 'space'));
 handles.currentPose = [handles.currentPose(3,2) handles.currentPose(1,3) handles.currentPose(2,1) handles.currentPose(1:3,4)']';
 
-mdl_irb140;
-robot = irb140;
-robot.plot(zeros(1,6))
+mdl_panda;
+robot = panda;
+robot.plot(handles.currentQ)
 handles.robot = robot;
 
 [handles.Mlist, handles.Glist] = make_dynamics_model(robot);
@@ -466,7 +467,7 @@ axes(handles.positionGraph)
 title("Position vs time")
 legend("joint 1", "joint 2", "joint 3", "joint 4", "joint 5", "joint 6")
 xlabel("time (s)")
-ylabel("Position (m)")
+ylabel("Position (radians)")
 
 plot(handles.velocityGraph, t, jointVel);
 axes(handles.velocityGraph)

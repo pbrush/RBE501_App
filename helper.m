@@ -1,3 +1,4 @@
-mdl_ur5;
-robot = ur5;
-robot.plot(zeros(1,6));
+clc; close all; clear
+mdl_panda;
+robot = panda;
+robot.plot(zeros([1,7]));
