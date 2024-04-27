@@ -58,6 +58,7 @@ handles.output = hObject;
 
 addpath('./lib');
 
+% Twists
 handles.S = [0 0 1 0 0 0;
              0 1 0 -0.333 0 0;
              0 0 1 0 0 0;
@@ -71,15 +72,19 @@ handles.M = [1	0	0	0.088;
              0	-1	0	0;
              0	0	-1	0.816;
              0	0	0	1];
+
+% Number of Joints
 handles.n = 7;
 
+% Gravity
 handles.g = [0 0 -9.81];
 
-
+% Set initial pose and joint variables
 handles.currentQ = [0.4297    2.28    0.   -1.844   3.15   -0.986   -0.4297];
 handles.currentPose = MatrixLog6(fkine(handles.S, handles.M, handles.currentQ, 'space'));
 handles.currentPose = [handles.currentPose(3,2) handles.currentPose(1,3) handles.currentPose(2,1) handles.currentPose(1:3,4)']';
 
+% Instantiate the robot model
 mdl_panda;
 robot = panda;
 robot.plot(handles.currentQ)
@@ -87,6 +92,7 @@ handles.robot = robot;
 
 [handles.Mlist, handles.Glist] = make_dynamics_model(robot);
 
+% Initialize the input variables for the graphs
 handles.x = 0;
 handles.y = 0;
 handles.z = 0;
@@ -146,8 +152,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function y_Callback(hObject, eventdata, handles)
 % hObject    handle to y (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -158,6 +162,7 @@ function y_Callback(hObject, eventdata, handles)
 handles.y = str2double(get(hObject,'String'));
 handles = valueChanged(hObject, eventdata, handles);
 guidata(hObject, handles);
+
 
 % --- Executes during object creation, after setting all properties.
 function y_CreateFcn(hObject, eventdata, handles)
@@ -170,7 +175,6 @@ function y_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
 
 
 function roll_Callback(hObject, eventdata, handles)
@@ -195,7 +199,6 @@ function roll_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
 
 
 function yaw_Callback(hObject, eventdata, handles)
@@ -419,6 +422,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
+% Update graph variables
 function handles = valueChanged(hObject, eventdata, handles)
 x = handles.x;
 y = handles.y;
@@ -436,6 +440,8 @@ fyaw = handles.fyaw;
 Ftip = [froll fpitch fyaw fx fy fz];
 
 psi = yaw; theta = pitch; phi = roll;
+
+% Update position vector and rotation matrix
 p = [x; y; z];
 R = [cos(theta)*cos(psi) -cos(phi)*sin(psi)+sin(phi)*sin(theta)*cos(psi) sin(phi)*sin(psi)+cos(phi)*sin(theta)*cos(psi);
      cos(theta)*sin(psi) cos(phi)*cos(psi)+sin(phi)*sin(theta)*sin(psi) -sin(phi)*cos(psi)+cos(phi)*sin(theta)*sin(psi);
@@ -447,14 +453,17 @@ targetPose = [targetPose(3,2) targetPose(1,3) targetPose(2,1) targetPose(1:3,4)'
 goalQ = ikin(handles.S, handles.M, handles.currentQ, targetPose);
 tMax = norm(targetPose - handles.currentPose);
 
+% Calculate RNE and FDyn
 [tau, jointPos, jointVel, jointAcc, t] = simulate(handles.n, handles.currentQ, goalQ, handles.g, handles.S, handles.M, handles.Mlist, handles.Glist, tMax, Ftip);
 
+% Update robot from RNE and FDyn
 axes(handles.RTB)
 handles.robot.plot(jointPos(:,1:100:end)','trail',{'r', 'LineWidth', 2});
 handles.currentQ = jointPos(:, end)';
 handles.currentPose = MatrixLog6(fkine(handles.S, handles.M, handles.currentQ, 'space'));
 handles.currentPose = [handles.currentPose(3,2) handles.currentPose(1,3) handles.currentPose(2,1) handles.currentPose(1:3,4)']';
 
+% Plot joint torques
 plot(handles.torqueGraph, t, tau);
 axes(handles.torqueGraph)
 title("Torque vs time")
@@ -462,6 +471,7 @@ legend("joint 1", "joint 2", "joint 3", "joint 4", "joint 5", "joint 6")
 xlabel("time (s)")
 ylabel("torque (N-m)")
 
+% Plot joint positions
 plot(handles.positionGraph, t, jointPos);
 axes(handles.positionGraph)
 title("Position vs time")
@@ -469,6 +479,7 @@ legend("joint 1", "joint 2", "joint 3", "joint 4", "joint 5", "joint 6")
 xlabel("time (s)")
 ylabel("Position (radians)")
 
+% Plot joint velocities
 plot(handles.velocityGraph, t, jointVel);
 axes(handles.velocityGraph)
 title("Velocity vs time")
@@ -476,6 +487,7 @@ legend("joint 1", "joint 2", "joint 3", "joint 4", "joint 5", "joint 6")
 xlabel("time (s)")
 ylabel("velocity (m/s)")
 
+% Plot join accelerations
 plot(handles.accelerationGraph, t, jointAcc);
 axes(handles.accelerationGraph)
 title("Acceleration vs time")
