@@ -1,1 +1,3 @@
-A mini project for WPI's RBE501 with Loris Fichera create a robot dynamics simulator in MATLAB. We must create a GUI that displays a kinematic chain of ___ robot, plots the state of the robot in real time, and has controls to interact with the robot.
+A mini project for WPI's RBE501 with Loris Fichera create a robot dynamics simulator in MATLAB. We must create a GUI that displays a kinematic chain of the pandas robot, plots the state of the robot in real time, and has controls to interact with the robot.
+
+To start the application, run the robotarm.m file. The GUI should appear with inputs for the end effector's poisiton and orientation, as well as the wrench applied to the end effector. After pressing enter, an animation of the robot moving to the new pose will play, and the graphs of the robot's joint positions, velocities, acclerations, and torques will update.
